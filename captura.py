@@ -1,33 +1,50 @@
 import cv2
 import os
+from datetime import datetime
 
-# Carregar a imagem
-image_path = 'img.jpeg'
-img = cv2.imread(image_path)
+# iniciar camera
+cam = cv2.VideoCapture(0)
 
-# Verificar se a imagem foi carregada corretamente
-if img is None:
-    print('Erro ao carregar a imagem.')
-    exit()
+# local onde imgs será salva, criar caso não exista
+save_directory = "dataset/data"
+if not os.path.exists(save_directory):
+    os.makedirs(save_directory)
 
-# Diretório onde as cópias serão salvas
-output_directory = 'dataset/data'
+file_name = "image.jpg"
+file_path = os.path.join(save_directory, file_name)
 
-# Verificar se o diretório de saída existe; se não, criá-lo
-os.makedirs(output_directory, exist_ok=True)
 
-# Número de cópias desejadas
-num_copies = 30
+print("Pressione 'o' para tirar foto ou 'x' para fechar.")
 
-# Fazer cópias da imagem
-for i in range(num_copies):
-    # Nome do arquivo de saída
-    output_filename = f'image_copy_{i}.jpeg'
+image_count = 0  # Contador para o número de imagens salvas
 
-    # Caminho completo para a cópia da imagem
-    output_path = os.path.join(output_directory, output_filename)
+# ler frames e capturar
+while True:
 
-    # Salvar a cópia da imagem
-    cv2.imwrite(output_path, img)
+    ret, frame = cam.read()
 
-    print(f'Cópia {i+1} salva em: {output_path}')
+    cv2.imshow('Imagem capturada', frame)
+
+    # Aguarda por uma tecla ser pressionada
+    key = cv2.waitKey(1) & 0xFF
+    
+    if key == ord('o'):
+        # Gera um nome de arquivo único usando um contador
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_name = f"captured_image_{timestamp}_{image_count}.jpg"
+        file_path = os.path.join(save_directory, file_name)
+        
+        # Salva a imagem capturada
+        cv2.imwrite(file_path, frame)
+        print(f"Imagem salva como '{file_path}'")
+        
+        # Incrementa o contador
+        image_count += 1
+        
+    elif key == ord('x'):
+        print("Saindo.")
+        break
+
+# Libera a captura de vídeo e fecha todas as janelas
+cam.release()
+cv2.destroyAllWindows()
